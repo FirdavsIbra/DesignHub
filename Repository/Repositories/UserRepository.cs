@@ -27,7 +27,7 @@ namespace Repository.Repositories
 
         public async Task<IUser> GetByUsername(string username)
         {
-            var userEntity = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+            var userEntity = _dbContext.Users.FirstOrDefault(u => u.Username == username);
             if (userEntity == null)
             {
                 return null; // No user found with the specified username
@@ -38,8 +38,8 @@ namespace Repository.Repositories
         public async Task Add(IUser user)
         {
             var userEntity = _mapper.Map<User>(user);
-            _dbContext.Users.Add(userEntity);
-            await _dbContext.SaveChangesAsync();   
+            await _dbContext.Users.AddAsync(userEntity);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task Update(IUser user)

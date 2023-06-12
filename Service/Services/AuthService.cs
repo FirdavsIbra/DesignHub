@@ -71,18 +71,20 @@ namespace Service.Services
             }
         }
 
-        public async Task<bool> RegisterUser(string username, string password)
+        public async Task RegisterUser(string username, string password)
         {
-           
-                var newUser = new UserDTO
-                {
-                    Username = username,
-                    Password = HashPassword(password) // Хеширование пароля
-                };
+            var user = await _userRepository.GetByUsername(username);
+            if (user != null)
+            {
+                throw new Exception("This username is already taken.");
+            }
+            var newUser = new UserDTO
+            {
+                Username = username,
+                Password = HashPassword(password) // Хеширование пароля
+            };
 
-                await _userRepository.Add(newUser);
-            
-            return true;
+           await _userRepository.Add(newUser);
         }
 
         public async Task<bool> Login(string username, string password)

@@ -6,7 +6,7 @@ namespace Domain.Services
     {
         string GenerateJwtToken(string username);
         bool ValidateJwtToken(string token);
-        public Task<bool> RegisterUser(string username, string password);
+        public Task RegisterUser(string username, string password);
         public Task<bool> Login(string username, string password);
         public int GetCurrentUserId(ClaimsPrincipal user);
     }

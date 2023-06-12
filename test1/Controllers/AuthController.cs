@@ -16,18 +16,18 @@ namespace test1.Controllers
             }
 
             [HttpPost("register")]
-            public IActionResult Register([FromQuery] RegisterRequestModel model)
+            public async Task<IActionResult> Register([FromQuery] RegisterRequestModel model)
             {
-                // Проверка валидности модели
-
-                if (_authService.RegisterUser(model.Username, model.Password) != null)
+                try
                 {
-                    return Ok("Registration successfully");
+                    await _authService.RegisterUser(model.Username, model.Password);
                 }
-                else
+                catch (Exception ex) 
                 {
-                    return BadRequest("Registration failed");
+                    return BadRequest(ex.Message);
+                
                 }
+                return Ok();
             }
 
             [HttpPost("login")]
