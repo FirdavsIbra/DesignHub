@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Domain.Repositories;
+﻿using Domain.Repositories;
 using Domain.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
@@ -16,29 +15,32 @@ namespace Service.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
-        private readonly JwtModel _jwtOptions;
+        private readonly JwtOptions _jwtOptions;
 
-        public AuthService(IConfiguration configuration, IUserRepository userRepository, IOptions<JwtModel> jwtOptions)
+        public AuthService(IConfiguration configuration, IUserRepository userRepository, IOptions<JwtOptions> jwtOptions)
         {
             _configuration = configuration;
             _userRepository = userRepository;
             _jwtOptions = jwtOptions.Value;
         }
 
-        public string GenerateJwtToken(string username)
+        public string GenerateJwtToken(string username, int userId)
         {
-            var secretKey = Encoding.UTF8.GetBytes(_jwtOptions.SecretKey);
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
 
             var claims = new[]
             {
-        new Claim(ClaimTypes.Name, username)
-    };
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Name, username)
+            };
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddDays(_jwtOptions.ExpirationDays),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKey), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256Signature),
+                Audience = _jwtOptions.Audience,
+                Issuer = _jwtOptions.Issuer
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -49,21 +51,23 @@ namespace Service.Services
 
         public bool ValidateJwtToken(string token)
         {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecretKey));
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = secretKey,
+                ValidateIssuer = true,
+                ValidIssuer = _jwtOptions.Issuer,
+                ValidateAudience = true,
+                ValidAudience = _jwtOptions.Audience,
+                ClockSkew = TimeSpan.Zero
+            };
+
             try
             {
-                // Получение секретного ключа из конфигурации
-                var secretKey = Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]);
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(secretKey),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero
-                }, out _);
-
+                tokenHandler.ValidateToken(token, validationParameters, out _);
                 return true;
             }
             catch
@@ -77,33 +81,27 @@ namespace Service.Services
             var user = await _userRepository.GetByUsername(username);
             if (user != null)
             {
-                throw new Exception("This username is already taken.");
+                throw new Exception("Registration failed. Please choose a different username.");
             }
+
             var newUser = new UserDTO
             {
                 Username = username,
-                Password = HashPassword(password) // Хеширование пароля
+                Password = HashPassword(password)
             };
 
-           await _userRepository.Add(newUser);
+            await _userRepository.Add(newUser);
         }
 
         public async Task<bool> Login(string username, string password)
         {
-            // Получение пользователя по имени пользователя
             var user = await _userRepository.GetByUsername(username);
             if (user == null)
             {
-                return false; // Пользователь не найден
+                return false;
             }
 
-            // Проверка пароля
-            if (!VerifyPassword(password, user.Password))
-            {
-                return false; // Неправильный пароль
-            }
-
-            return true; // Аутентификация успешна
+            return VerifyPassword(password, user.Password);
         }
 
         private string HashPassword(string password)
@@ -122,16 +120,25 @@ namespace Service.Services
 
         public async Task<int> GetCurrentUserId(ClaimsPrincipal user)
         {
-            string userIdString = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(userIdString, out int userId))
+            Claim userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
             {
-                // Проверка наличия пользователя в базе данных по его идентификатору
                 var existingUser = await _userRepository.GetById(userId);
                 return existingUser != null ? userId : 0;
             }
 
-            // Если идентификатор пользователя не может быть преобразован в int,
-            // считаем пользователя незарегистрированным
+            return 0;
+        }
+
+        public async Task<int> GetUserByUserNameAsync(string username)
+        {
+            var userId = await _userRepository.GetUserIdByUsername(username);
+
+            if (userId != 0)
+            {
+                return userId;
+            }
+
             return 0;
         }
     }

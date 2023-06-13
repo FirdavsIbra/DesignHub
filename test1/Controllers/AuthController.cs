@@ -37,7 +37,9 @@ namespace test1.Controllers
 
                 if (await _authService.Login(model.Username, model.Password))
                 {
-                    string token = _authService.GenerateJwtToken(model.Username);
+                    var user = await _authService.GetUserByUserNameAsync(model.Username);
+
+                    string token = _authService.GenerateJwtToken(model.Username, user);
                     return Ok(new { Token = token });
                 }
                 else

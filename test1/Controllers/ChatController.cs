@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/chat")]
     public class ChatController : ControllerBase
@@ -14,16 +15,16 @@ namespace API.Controllers
 
         public ChatController(IChatService chatService, IAuthService authService)
         {
-            _chatService = chatService;
-            _authService = authService;
+            _chatService = chatService ?? throw new ArgumentNullException(nameof(chatService));
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         }
-        [Authorize]
+
         [HttpPost("message")]
-        public async Task<IActionResult> SendMessage([FromForm] ChatMessageModel request, [FromForm] IFormFile mediaFile)
+        public async Task<IActionResult> SendMessage([FromForm] ChatMessageModel request, IFormFile mediaFile)
         {
             try
             {
-                if (string.IsNullOrEmpty(request.Message))
+                if (string.IsNullOrEmpty(request?.Message))
                 {
                     return BadRequest("Message text is required.");
                 }
@@ -32,8 +33,7 @@ namespace API.Controllers
                 int currentUserId = await _authService.GetCurrentUserId(User);
 
                 // Check if the user is registered
-                bool isUserRegistered = currentUserId != 0;
-                if (!isUserRegistered)
+                if (currentUserId == 0)
                 {
                     return BadRequest("User is not registered.");
                 }

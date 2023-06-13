@@ -9,5 +9,6 @@ namespace Domain.Repositories
         Task Add(IUser user);
         Task Update(IUser user);
         Task Delete(int id);
+        public Task<int> GetUserIdByUsername(string username);
     }
 }

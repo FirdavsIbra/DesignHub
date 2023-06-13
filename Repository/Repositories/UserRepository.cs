@@ -22,7 +22,7 @@ namespace Repository.Repositories
         public async Task<IUser> GetById(int id)
         {
             var userEntity = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
-            return _mapper.Map<IUser>(userEntity);
+            return _mapper.Map<UserBusiness>(userEntity);
         }
 
         public async Task<IUser> GetByUsername(string username)
@@ -60,6 +60,12 @@ namespace Repository.Repositories
 
             _dbContext.Users.Remove(userEntity);
             await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<int> GetUserIdByUsername(string username)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+            return user?.Id ?? 0;
         }
     }
 }

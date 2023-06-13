@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Domain.Repositories;
+﻿using Domain.Repositories;
 using Domain.Services;
 using Microsoft.AspNetCore.Http;
 using Service.DTO;
@@ -14,8 +13,8 @@ namespace Service.Services
 
         public ChatService(IChatRepository chatMessageRepository, IAuthService authService)
         {
-            _chatMessageRepository = chatMessageRepository;
-            _authService = authService;
+            _chatMessageRepository = chatMessageRepository ?? throw new ArgumentNullException(nameof(chatMessageRepository));
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         }
 
         public async Task<int> SendMessage(string message, IFormFile mediaFile, ClaimsPrincipal user)
@@ -47,7 +46,7 @@ namespace Service.Services
 
             string fileName = Guid.NewGuid().ToString() + Path.GetExtension(mediaFile.FileName);
 
-            string mediaFolderPath = "путь_к_папке_для_сохранения_медиафайлов";
+            string mediaFolderPath = "path_to_save_files";
 
             string filePath = Path.Combine(mediaFolderPath, fileName);
 
@@ -58,8 +57,8 @@ namespace Service.Services
                     await mediaFile.CopyToAsync(stream);
                 }
 
-                string baseUrl = "базовый_URL_сервера";
-                string mediaUrl = baseUrl + "/" + fileName;
+                string baseUrl = "base_url_for_server";
+                string mediaUrl = Path.Combine(baseUrl, fileName);
 
                 return mediaUrl;
             }

@@ -13,8 +13,8 @@ namespace Repository.Repositories
 
         public ChatMessageRepository(ContextDb dbContext, IMapper mapper)
         {
-            _dbContext = dbContext;
-            _mapper = mapper;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public async Task<int> Create(IChatMessage message)
