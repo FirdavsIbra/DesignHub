@@ -1,6 +1,8 @@
-﻿using Domain.Repositories;
+﻿using AutoMapper;
+using Domain.Repositories;
 using Domain.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Service.DTO;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,29 +16,28 @@ namespace Service.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
+        private readonly JwtModel _jwtOptions;
 
-        public AuthService(IConfiguration configuration, IUserRepository userRepository)
+        public AuthService(IConfiguration configuration, IUserRepository userRepository, IOptions<JwtModel> jwtOptions)
         {
             _configuration = configuration;
             _userRepository = userRepository;
+            _jwtOptions = jwtOptions.Value;
         }
 
         public string GenerateJwtToken(string username)
         {
-            // Получение секретного ключа из конфигурации
-            var secretKey = Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]);
+            var secretKey = Encoding.UTF8.GetBytes(_jwtOptions.SecretKey);
 
-            // Создание утверждений для токена (например, имя пользователя)
             var claims = new[]
             {
-            new Claim(ClaimTypes.Name, username)
-        };
+        new Claim(ClaimTypes.Name, username)
+    };
 
-            // Создание JWT-токена
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_configuration["Jwt:ExpirationDays"])),
+                Expires = DateTime.UtcNow.AddDays(_jwtOptions.ExpirationDays),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKey), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -119,17 +120,19 @@ namespace Service.Services
             return hashedPassword == inputHash;
         }
 
-        public int GetCurrentUserId(ClaimsPrincipal user)
+        public async Task<int> GetCurrentUserId(ClaimsPrincipal user)
         {
             string userIdString = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(userIdString, out int userId))
             {
-                return userId;
+                // Проверка наличия пользователя в базе данных по его идентификатору
+                var existingUser = await _userRepository.GetById(userId);
+                return existingUser != null ? userId : 0;
             }
 
-            // Обработка случая, когда идентификатор пользователя не может быть преобразован в int.
-            // Можно выбрать подходящую стратегию, например, выбросить исключение или вернуть значение по умолчанию.
-            throw new InvalidOperationException("Unable to retrieve current user's ID.");
+            // Если идентификатор пользователя не может быть преобразован в int,
+            // считаем пользователя незарегистрированным
+            return 0;
         }
     }
 }

@@ -1,105 +1,71 @@
-﻿using Domain.Models;
+﻿using AutoMapper;
 using Domain.Repositories;
 using Domain.Services;
 using Microsoft.AspNetCore.Http;
 using Service.DTO;
+using System.Security.Claims;
 
 namespace Service.Services
 {
     public class ChatService : IChatService
     {
-        private readonly IChatRepository _chatRepository;
+        private readonly IChatRepository _chatMessageRepository;
         private readonly IAuthService _authService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IFileRepository _fileRepository;
 
-        public ChatService(IChatRepository chatRepository, IAuthService authService, IHttpContextAccessor httpContextAccessor, IFileRepository fileRepository)
+        public ChatService(IChatRepository chatMessageRepository, IAuthService authService)
         {
-            _chatRepository = chatRepository;
+            _chatMessageRepository = chatMessageRepository;
             _authService = authService;
-            _httpContextAccessor = httpContextAccessor;
-            _fileRepository = fileRepository;
         }
 
-        public async Task<IChatMessage> GetChatMessages(int id)
+        public async Task<int> SendMessage(string message, IFormFile mediaFile, ClaimsPrincipal user)
         {
-            var chatMessageEntity = await _chatRepository.GetById(id);
-            return chatMessageEntity;
-        }
-
-        public async Task<IEnumerable<IChatMessage>> GetMessagesForUser(int userId)
-        {
-            var chatMessageEntities = await _chatRepository.GetMessagesByUserId(userId);
-            return chatMessageEntities;
-        }
-
-        public async Task AddMessage(IChatMessage chatMessageDto)
-        {
-            var senderId = _authService.GetCurrentUserId(_httpContextAccessor.HttpContext.User);
-            var receiverId = chatMessageDto.RecieverId;
+            int currentUserId = await _authService.GetCurrentUserId(user);
 
             var chatMessage = new ChatMessageDTO
             {
-                SenderId = senderId,
-                RecieverId = receiverId,
-                Message = chatMessageDto.Message,
-                MediaUrl = chatMessageDto.MediaUrl,
-                Timestamp = DateTime.Now
+                SenderId = currentUserId,
+                Message = message,
+                Timestamp = DateTime.UtcNow
             };
 
-            await _chatRepository.Add(chatMessage);
+            if (mediaFile != null)
+            {
+                string mediaUrl = await SaveMediaFile(mediaFile);
+                chatMessage.MediaUrl = mediaUrl;
+            }
+
+            return await _chatMessageRepository.Create(chatMessage);
         }
 
-        public async Task UpdateMessage(int messageId, ChatMessageDTO chatMessageDto)
+        public async Task<string> SaveMediaFile(IFormFile mediaFile)
         {
-            var chatMessage = await _chatRepository.GetById(messageId);
-            if (chatMessage == null)
-                throw new Exception("Chat message not found");
+            if (mediaFile == null || mediaFile.Length == 0)
+            {
+                throw new ArgumentException("Media file is null or empty.");
+            }
 
-            chatMessage.Message = chatMessageDto.Message;
-            chatMessage.MediaUrl = chatMessageDto.MediaUrl;
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(mediaFile.FileName);
 
-            await _chatRepository.Update(chatMessage);
-        }
+            string mediaFolderPath = "путь_к_папке_для_сохранения_медиафайлов";
 
-        public async Task DeleteMessage(int messageId)
-        {
-            var chatMessage = await _chatRepository.GetById(messageId);
-            if (chatMessage == null)
-                throw new Exception("Chat message not found");
+            string filePath = Path.Combine(mediaFolderPath, fileName);
 
-            await _chatRepository.Delete(messageId);
-        }
-
-        public async Task<bool> SendMessage(IChatMessage message)
-        {
             try
             {
-                await AddMessage(message);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        public async Task<bool> UploadFile(int companyId, byte[] fileData)
-        {
-            try
-            {
-                var fileEntity = new FileEntityDTO
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    CompanyId = companyId,
-                    FileData = fileData
-                };
+                    await mediaFile.CopyToAsync(stream);
+                }
 
-                await _fileRepository.Add(fileEntity); 
+                string baseUrl = "базовый_URL_сервера";
+                string mediaUrl = baseUrl + "/" + fileName;
 
-                return true; 
+                return mediaUrl;
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                throw new Exception("Error saving media file: " + ex.Message);
             }
         }
     }

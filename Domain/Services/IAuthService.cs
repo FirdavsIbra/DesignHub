@@ -8,7 +8,7 @@ namespace Domain.Services
         bool ValidateJwtToken(string token);
         public Task RegisterUser(string username, string password);
         public Task<bool> Login(string username, string password);
-        public int GetCurrentUserId(ClaimsPrincipal user);
+        public Task<int> GetCurrentUserId(ClaimsPrincipal user);
     }
 
 }

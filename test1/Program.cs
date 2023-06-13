@@ -1,10 +1,14 @@
 using database;
 using Domain.Repositories;
 using Domain.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Repository.Mapper;
 using Repository.Repositories;
+using Service.DTO;
 using Service.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +22,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ContextDb>(options =>
         options.UseSqlServer(configuration.GetConnectionString("ConnectionString")));
 
-//builder.Services.AddAutoMapperClasses(typeof(AutoMapperConfig).Assembly);
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddHttpContextAccessor();
 
@@ -26,6 +29,8 @@ builder.Services.AddScoped<IChatRepository, ChatMessageRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IDesignRepository, DesignRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IChatRepository, ChatMessageRepository>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
@@ -37,6 +42,23 @@ builder.Services.AddCors(option =>
     });
 });
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"])),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.Configure<JwtModel>(builder.Configuration.GetSection("Jwt"));
 
 var app = builder.Build();
 
@@ -52,6 +74,8 @@ app.UseCors();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseAuthentication();
 
 app.MapControllers();
 
