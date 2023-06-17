@@ -4,6 +4,7 @@ using database.Entities;
 using Domain.Models;
 using Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Repository.Business_Models;
 
 namespace Repository.Repositories
 {
@@ -18,10 +19,15 @@ namespace Repository.Repositories
             _mapper = mapper;
         }
 
-        public async Task<ICompany> GetById(int id)
+        public async Task<ICompany> GetByUserIdAsync(int userId)
         {
-            var companyEntity = await _dbContext.Companies.FirstOrDefaultAsync(c => c.Id == id);
-            return _mapper.Map<ICompany>(companyEntity);
+            var companyEntity = await _dbContext.Companies.FirstOrDefaultAsync(c => c.UserId == userId);
+            return _mapper.Map<CompanyBusiness>(companyEntity);
+        }
+
+        public async Task<ICompany[]> GetAllAsync()
+        {
+            return await _dbContext.Companies.Select(x => _mapper.Map<CompanyBusiness>(x)).ToArrayAsync();
         }
 
         public async Task Add(ICompany company)
@@ -37,17 +43,8 @@ namespace Repository.Repositories
             if (existingCompany == null)
                 throw new InvalidOperationException("Company not found");
 
-            _mapper.Map(company, existingCompany);
-            await _dbContext.SaveChangesAsync();
-        }
-
-        public async Task Delete(int id)
-        {
-            var companyEntity = await _dbContext.Companies.FirstOrDefaultAsync(c => c.Id == id);
-            if (companyEntity == null)
-                throw new InvalidOperationException("Company not found");
-
-            _dbContext.Companies.Remove(companyEntity);
+            var a =_mapper.Map(company, existingCompany);
+            _dbContext.Companies.Update(a);
             await _dbContext.SaveChangesAsync();
         }
     }

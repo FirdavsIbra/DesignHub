@@ -3,8 +3,8 @@ using database;
 using database.Entities;
 using Domain.Models;
 using Domain.Repositories;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Repository.Business_Models;
 
 namespace Repository.Repositories
 {
@@ -19,25 +19,20 @@ namespace Repository.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<IDesign> GetById(int id)
+        public async Task<IDesign> GetByUserId(int userId)
         {
-            var designEntity = await _dbContext.Designs.FindAsync(id);
-            return _mapper.Map<IDesign>(designEntity);
+            var designEntity = await _dbContext.Designs.FirstOrDefaultAsync(x=> x.UserId == userId);
+            return _mapper.Map<DesignBusiness>(designEntity);
         }
 
-        public async Task<IEnumerable<IDesign>> GetAll()
+        public async Task<IDesign[]> GetAllAsync()
         {
-            var designEntities = await _dbContext.Designs.ToListAsync();
-            return _mapper.Map<IEnumerable<IDesign>>(designEntities);
+            return await _dbContext.Designs.Select(x => _mapper.Map<DesignBusiness>(x)).ToArrayAsync();
         }
 
-        public async Task Add(IDesign design, IFormFile file)
+        public async Task Add(IDesign design)
         {
             var designEntity = _mapper.Map<Design>(design);
-
-            // Save the design file to a location of your choice
-            string filePath = await SaveDesignFileAsync(file);
-            designEntity.ImageUrl = filePath;
 
             _dbContext.Designs.Add(designEntity);
             await _dbContext.SaveChangesAsync();
@@ -45,41 +40,13 @@ namespace Repository.Repositories
 
         public async Task Update(IDesign design)
         {
-            var designEntity = await _dbContext.Designs.FindAsync(design.Id);
+            var designEntity = await _dbContext.Designs.FirstOrDefaultAsync(d => d.Id == design.Id);
             if (designEntity == null)
                 throw new Exception("Design not found");
 
-            _mapper.Map(design, designEntity);
-
+            var mappedDesign = _mapper.Map(design, designEntity);
+            _dbContext.Designs.Update(mappedDesign);
             await _dbContext.SaveChangesAsync();
-        }
-
-        public async Task Delete(int id)
-        {
-            var designEntity = await _dbContext.Designs.FindAsync(id);
-            if (designEntity == null)
-                throw new Exception("Design not found");
-
-            _dbContext.Designs.Remove(designEntity);
-            await _dbContext.SaveChangesAsync();
-        }
-
-        private async Task<string> SaveDesignFileAsync(IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-                throw new ArgumentException("Invalid file");
-
-            // Generate a unique filename for the design file
-            string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-
-            // Save the design file to a location of your choice (e.g., a designated folder)
-            string filePath = Path.Combine("DesignFiles", uniqueFileName);
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(fileStream);
-            }
-
-            return filePath;
         }
     }
 }

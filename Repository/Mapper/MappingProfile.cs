@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using database.Entities;
 using Domain.Models;
 using Repository.Business_Models;
 
@@ -8,20 +9,23 @@ namespace Repository.Mapper
     {
         public MappingProfile()
         {
-            CreateMap<IUser, database.Entities.User>().ReverseMap();
-            CreateMap<database.Entities.User, UserBusiness>().ReverseMap();
+            CreateMap<IUser, database.Entities.User>();
+            CreateMap<database.Entities.User, UserBusiness>();
 
-            CreateMap<database.Entities.FileEntity, IFileEntity>().ReverseMap();
+            CreateMap<database.Entities.FileEntity, IFileEntity>();
             CreateMap<FileEntityBusiness, IFileEntity>().ReverseMap();
 
-            CreateMap< database.Entities.Company, ICompany >().ReverseMap();
-            CreateMap<CompanyBusiness, database.Entities.Company>();
+            CreateMap<ICompany, database.Entities.Company>();
+            CreateMap<database.Entities.Company, CompanyBusiness>();
 
-            CreateMap<database.Entities.ChatMessage, IChatMessage>().ReverseMap();
+            CreateMap<database.Entities.ChatMessage, IChatMessage>();
             CreateMap<ChatMessageBusiness, database.Entities.ChatMessage>();
 
-            CreateMap<DesignBusiness, database.Entities.Design>();
-            CreateMap<database.Entities.Design, IDesign>().ReverseMap();
+            CreateMap<IDesign, database.Entities.Design>();
+            CreateMap<database.Entities.Design, DesignBusiness>();
+
+            CreateMap<ISketch, database.Entities.Sketch>();
+            CreateMap<database.Entities.Sketch, SketchBusiness>();
         }
     }
 }

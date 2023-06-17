@@ -53,7 +53,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<ContextDb>(options =>
-        options.UseSqlServer(configuration.GetConnectionString("ConnectionString")));
+        options.UseSqlServer(configuration.GetConnectionString("ConnectionString2")));
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddHttpContextAccessor();
@@ -63,7 +63,13 @@ builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IDesignRepository, DesignRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IChatRepository, ChatMessageRepository>();
+builder.Services.AddScoped<ISketchRepository, SketchRepository>();
+
+builder.Services.AddScoped<ISketchService,  SketchService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IDesignService, DesignService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 

@@ -15,5 +15,6 @@ namespace database
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<Design> Designs { get; set; }
         public DbSet<FileEntity> FileEntities { get; set; }
+        public DbSet<Sketch> Sketches { get; set; }
     }
 }

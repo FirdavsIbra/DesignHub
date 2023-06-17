@@ -4,6 +4,8 @@ namespace Domain.Services
 {
     public interface ICompanyService
     {
-        public Task AddCompany(ICompany company);
+        public Task AddOrUpdateCompanyAsync(ICompany company);
+
+        public Task<ICompany> GetByUserIdAsync(int userId);
     }
 }

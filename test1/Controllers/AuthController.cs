@@ -1,6 +1,7 @@
 ﻿using API.Models;
 using Domain.Services;
 using Microsoft.AspNetCore.Mvc;
+using Service.Services;
 
 namespace test1.Controllers
 {
@@ -31,7 +32,7 @@ namespace test1.Controllers
             }
 
             [HttpPost("login")]
-            public async Task<IActionResult> Login(LoginRequestModel model)
+            public async Task<IActionResult> Login([FromQuery] LoginRequestModel model)
             {
                 // Проверка валидности модели
 
@@ -47,5 +48,31 @@ namespace test1.Controllers
                     return Unauthorized("Invalid username or password");
                 }
             }
+
+            [HttpGet("getMe")]
+            public async Task<IActionResult> GetMe()
+            {
+                // Получение токена из заголовка запроса
+                string token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+                // Проверка валидности токена
+                bool isValidToken = _authService.ValidateJwtToken(token);
+                if (!isValidToken)
+                {
+                    return Unauthorized();
+                }
+
+                // Получение идентификатора пользователя из токена
+                int userId = await _authService.GetCurrentUserId(User);
+                if (userId == 0)
+                {
+                    return NotFound("User not found");
+                }
+
+                return Ok(new
+                {
+                    id = userId
+                });
+        }
         }
     }

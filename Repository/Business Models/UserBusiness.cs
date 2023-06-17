@@ -2,7 +2,7 @@
 
 namespace Repository.Business_Models
 {
-    public class UserBusiness:IUser
+    public class UserBusiness: IUser
     {
         public int Id { get; set; }
         public string Username { get; set; }

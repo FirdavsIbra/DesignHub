@@ -27,7 +27,7 @@ namespace Service.Services
                 Message = message,
                 Timestamp = DateTime.UtcNow
             };
-
+                
             if (mediaFile != null)
             {
                 string mediaUrl = await SaveMediaFile(mediaFile);

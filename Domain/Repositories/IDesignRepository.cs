@@ -5,10 +5,9 @@ namespace Domain.Repositories
 {
     public interface IDesignRepository
     {
-        Task<IDesign> GetById(int id);
-        public Task<IEnumerable<IDesign>> GetAll();
-        public Task Add(IDesign design, IFormFile file);
+        Task<IDesign> GetByUserId(int id);
+        public Task<IDesign[]> GetAllAsync();
+        public Task Add(IDesign design);
         Task Update(IDesign design);
-        Task Delete(int id);
     }
 }

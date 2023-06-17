@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Domain.Models;
+﻿using Domain.Models;
 using Domain.Repositories;
 using Domain.Services;
 
@@ -7,19 +6,35 @@ namespace Service.Services
 {
     public class CompanyService : ICompanyService
     {
-        private readonly IMapper _mapper;
         private readonly ICompanyRepository _companyRepository;
 
-        public CompanyService(IMapper mapper, ICompanyRepository companyRepository)
+        public CompanyService(ICompanyRepository companyRepository)
         {
-            _mapper = mapper;
             _companyRepository = companyRepository;
         }
 
-        public async Task AddCompany(ICompany company)
+
+        /// <summary>
+        /// Add company if the user has not created company yet, if he has company, then update this.
+        /// </summary>
+        public async Task AddOrUpdateCompanyAsync(ICompany company)
         {
-            var companyEntity = _mapper.Map<ICompany>(company);
-            await _companyRepository.Add(companyEntity);
+            var companies = await _companyRepository.GetAllAsync();
+            var existingCompany = companies.FirstOrDefault(x => x.UserId == company.UserId);
+            if (existingCompany != null)
+            {
+                company.Id = existingCompany.Id;
+                await _companyRepository.Update(company);
+            }
+            else
+            {
+                await _companyRepository.Add(company);
+            }
+        }
+
+        public async Task<ICompany> GetByUserIdAsync(int userId)
+        {
+           return await _companyRepository.GetByUserIdAsync(userId);
         }
     }
 }

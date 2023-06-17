@@ -1,7 +1,6 @@
-﻿using Domain.Repositories;
+﻿using Domain.Models;
+using Domain.Repositories;
 using Domain.Services;
-using Microsoft.AspNetCore.Http;
-using Service.DTO;
 
 namespace Service.Services
 {
@@ -14,17 +13,24 @@ namespace Service.Services
             _designRepository = designRepository;
         }
 
-        public async Task<int> UploadDesignAsync(IFormFile file)
+        public async Task AddOrUpdateDesignAsync(IDesign design)
         {
-            var design = new DesignDTO
+            var designs = await _designRepository.GetAllAsync();
+            var existingDesign = designs.FirstOrDefault(x => x.UserId == design.UserId);
+            if(existingDesign != null) 
             {
-                Title = "Design Title",
-                Description = "Design Description"
-            };
+                design.Id = existingDesign.Id;
+                await _designRepository.Update(design);
+            }
+            else
+            {
+                await _designRepository.Add(design);
+            }
+        }
 
-            await _designRepository.Add(design, file);
-
-            return design.Id;
+        public async Task<IDesign> GetByUserIdAsync(int userId)
+        {
+            return await _designRepository.GetByUserId(userId);
         }
     }
 }
