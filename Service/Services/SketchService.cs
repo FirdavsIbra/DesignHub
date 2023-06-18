@@ -15,11 +15,12 @@ namespace Service.Services
         public async Task AddAsync(ISketch sketch)
         {
             var sketches = await _sketchRepository.GetAllAsync();
+
             var existingSketch = sketches.FirstOrDefault(x => x.UserId == sketch.UserId);
             if (existingSketch != null)
             {
                 sketch.Id = existingSketch.Id;
-                await _sketchRepository.Update(sketch);
+                await _sketchRepository.UpdateAsync(sketch);
             }
             else
             {
@@ -27,9 +28,9 @@ namespace Service.Services
             }
         }
 
-        public async Task<ISketch> GetByUserId(int userId)
+        public async Task<ISketch> GetByUserIdAsync(int userId)
         {
-           return await _sketchRepository.GetByUserId(userId);
+           return await _sketchRepository.GetByUserIdAsync(userId);
         }
     }
 }

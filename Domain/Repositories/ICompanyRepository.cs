@@ -6,7 +6,7 @@ namespace Domain.Repositories
     {
         Task<ICompany[]> GetAllAsync();
         Task<ICompany> GetByUserIdAsync(int id);
-        Task Add(ICompany company);
-        Task Update(ICompany company);
+        Task AddAsync(ICompany company);
+        Task UpdateAsync(ICompany company);
     }
 }

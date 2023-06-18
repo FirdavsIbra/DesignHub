@@ -2,10 +2,10 @@
 using Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Service.DTO;
 
 namespace API.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/chat")]
     public class ChatController : ControllerBase
@@ -15,37 +15,46 @@ namespace API.Controllers
 
         public ChatController(IChatService chatService, IAuthService authService)
         {
-            _chatService = chatService ?? throw new ArgumentNullException(nameof(chatService));
-            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _chatService = chatService;
+            _authService = authService;
         }
 
-        [HttpPost("message")]
-        public async Task<IActionResult> SendMessage([FromForm] ChatMessageModel request, IFormFile mediaFile)
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> SendMessage(ChatMessageModel chatMessage)
         {
-            try
+            int currentUserId = await _authService.GetCurrentUserIdAsync(User);
+
+            ChatMessageDTO chatMessageDTO = new()
             {
-                if (string.IsNullOrEmpty(request?.Message))
-                {
-                    return BadRequest("Message text is required.");
-                }
+                Message = chatMessage.Message,
+                RecieverId = chatMessage.RecieverId,
+                SenderId = currentUserId,
+                DateTime = chatMessage.Date
+            };
 
-                // Get the user's ID from the token
-                int currentUserId = await _authService.GetCurrentUserId(User);
+            await _chatService.SendMessage(chatMessageDTO);
 
-                // Check if the user is registered
-                if (currentUserId == 0)
-                {
-                    return BadRequest("User is not registered.");
-                }
-
-                await _chatService.SendMessage(request.Message, mediaFile, User);
-
-                return Ok("Message sent successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error sending message: " + ex.Message);
-            }
+            return Ok();
         }
+
+        [HttpGet("messages")]
+        public async Task<IActionResult> GetAllMessageAsync()
+        {
+            return Ok(await _chatService.GetAllMessagesAsync());
+        }
+
+        [HttpGet("messages/{id}")]
+        public async Task<IActionResult> GetAllMessagesByRecieverId(int id)
+        {
+            return Ok(await _chatService.GetAllMessagesByRecieverId(id));
+        }
+
+        [HttpGet("messages/getByIds")]
+        public async Task<IActionResult> GetAllMessagesByRecieverAndSenderid([FromQuery] int recieverId, int senderId)
+        {
+            return Ok(await _chatService.GetAllMessagesByRecieverAndSenderId(recieverId, senderId));
+        }
+
     }
 }

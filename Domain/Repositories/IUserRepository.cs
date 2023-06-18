@@ -5,8 +5,8 @@ namespace Domain.Repositories
     public interface IUserRepository
     {
         public Task<IUser[]> GetAllAsync();
-        Task<IUser> GetById(int id);
-        Task<IUser> GetByUsername(string username);
+        Task<IUser> GetByIdAsync(int id);
+        Task<IUser> GetByUsernameAsync(string username);
         Task Add(IUser user);
         Task Update(IUser user);
         Task Delete(int id);

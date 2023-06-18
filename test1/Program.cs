@@ -18,6 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 builder.Configuration.AddJsonFile("appsettings.json");
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -106,7 +107,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 // Perform additional validation if required
                 var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
-                var userId = await authService.GetCurrentUserId(context.Principal);
+                var userId = await authService.GetCurrentUserIdAsync(context.Principal);
 
                 // Check if the user exists or has necessary permissions
                 if (userId == 0)

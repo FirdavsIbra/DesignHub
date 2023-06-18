@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Domain.Models;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 namespace Domain.Services
 {
     public interface IChatService
     {
-        public Task<int> SendMessage(string message, IFormFile mediaFile, ClaimsPrincipal user);
-        public Task<string> SaveMediaFile(IFormFile mediaFile);
+        public Task SendMessage(IChatMessage message);
+        public Task<IChatMessage[]> GetAllMessagesByRecieverId(int id);
+        public Task<IChatMessage[]> GetAllMessagesAsync();
+        public Task<IChatMessage[]> GetAllMessagesByRecieverAndSenderId(int recieverId, int senderID);
     }
 }

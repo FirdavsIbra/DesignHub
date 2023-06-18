@@ -21,7 +21,7 @@ namespace test1.Controllers
             {
                 try
                 {
-                    await _authService.RegisterUser(model.Username, model.Password);
+                    await _authService.RegisterUserAsync(model.Username, model.Password);
                 }
                 catch (Exception ex) 
                 {
@@ -36,7 +36,7 @@ namespace test1.Controllers
             {
                 // Проверка валидности модели
 
-                if (await _authService.Login(model.Username, model.Password))
+                if (await _authService.LoginAsync(model.Username, model.Password))
                 {
                     var user = await _authService.GetUserByUserNameAsync(model.Username);
 
@@ -63,7 +63,7 @@ namespace test1.Controllers
                 }
 
                 // Получение идентификатора пользователя из токена
-                int userId = await _authService.GetCurrentUserId(User);
+                int userId = await _authService.GetCurrentUserIdAsync(User);
                 if (userId == 0)
                 {
                     return NotFound("User not found");

@@ -19,9 +19,10 @@ namespace Repository.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<IDesign> GetByUserId(int userId)
+        public async Task<IDesign> GetByUserIdAsync(int userId)
         {
             var designEntity = await _dbContext.Designs.FirstOrDefaultAsync(x=> x.UserId == userId);
+
             return _mapper.Map<DesignBusiness>(designEntity);
         }
 
@@ -30,15 +31,16 @@ namespace Repository.Repositories
             return await _dbContext.Designs.Select(x => _mapper.Map<DesignBusiness>(x)).ToArrayAsync();
         }
 
-        public async Task Add(IDesign design)
+        public async Task AddAsync(IDesign design)
         {
             var designEntity = _mapper.Map<Design>(design);
 
-            _dbContext.Designs.Add(designEntity);
+            await _dbContext.Designs.AddAsync(designEntity);
+
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task Update(IDesign design)
+        public async Task UpdateAsync(IDesign design)
         {
             var designEntity = await _dbContext.Designs.FirstOrDefaultAsync(d => d.Id == design.Id);
             if (designEntity == null)

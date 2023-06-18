@@ -7,12 +7,10 @@ namespace Service.Services
     public class CompanyService : ICompanyService
     {
         private readonly ICompanyRepository _companyRepository;
-
         public CompanyService(ICompanyRepository companyRepository)
         {
             _companyRepository = companyRepository;
         }
-
 
         /// <summary>
         /// Add company if the user has not created company yet, if he has company, then update this.
@@ -24,11 +22,11 @@ namespace Service.Services
             if (existingCompany != null)
             {
                 company.Id = existingCompany.Id;
-                await _companyRepository.Update(company);
+                await _companyRepository.UpdateAsync(company);
             }
             else
             {
-                await _companyRepository.Add(company);
+                await _companyRepository.AddAsync(company);
             }
         }
 

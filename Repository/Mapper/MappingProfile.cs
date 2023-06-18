@@ -9,23 +9,23 @@ namespace Repository.Mapper
     {
         public MappingProfile()
         {
-            CreateMap<IUser, database.Entities.User>();
-            CreateMap<database.Entities.User, UserBusiness>();
+            CreateMap<IUser, User>();
+            CreateMap<User, UserBusiness>();
 
-            CreateMap<database.Entities.FileEntity, IFileEntity>();
+            CreateMap<FileEntity, IFileEntity>();
             CreateMap<FileEntityBusiness, IFileEntity>().ReverseMap();
 
-            CreateMap<ICompany, database.Entities.Company>();
-            CreateMap<database.Entities.Company, CompanyBusiness>();
+            CreateMap<ICompany, Company>();
+            CreateMap<Company, CompanyBusiness>();
 
-            CreateMap<database.Entities.ChatMessage, IChatMessage>();
-            CreateMap<ChatMessageBusiness, database.Entities.ChatMessage>();
+            CreateMap<IChatMessage, ChatMessage>();
+            CreateMap<ChatMessage, ChatMessageBusiness>();
 
-            CreateMap<IDesign, database.Entities.Design>();
-            CreateMap<database.Entities.Design, DesignBusiness>();
+            CreateMap<IDesign, Design>();
+            CreateMap<Design, DesignBusiness>();
 
-            CreateMap<ISketch, database.Entities.Sketch>();
-            CreateMap<database.Entities.Sketch, SketchBusiness>();
+            CreateMap<ISketch, Sketch>();
+            CreateMap<Sketch, SketchBusiness>();
         }
     }
 }

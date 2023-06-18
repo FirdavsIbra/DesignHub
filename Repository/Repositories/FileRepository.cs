@@ -16,7 +16,7 @@ namespace Repository.Repositories
             _mapper = mapper;
         }
 
-        public async Task Add(IFileEntity file)
+        public async Task AddAsync(IFileEntity file)
         {
             var fileEntity = _mapper.Map<FileEntity>(file);
             _dbContext.FileEntities.Add(fileEntity);

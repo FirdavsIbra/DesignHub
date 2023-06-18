@@ -2,7 +2,7 @@
 
 namespace Service.DTO
 {
-    public class UserDTO:IUser
+    public class UserDTO: IUser
     {
         public int Id { get; set; }
         public string Username { get; set; }

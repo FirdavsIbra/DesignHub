@@ -3,6 +3,6 @@ namespace Domain.Services
 {
     public interface ILogoService
     {
-        Task<bool> UploadLogo(int companyId, byte[] logoData);
+        public Task<bool> UploadLogoAsync(int companyId, byte[] logoData);
     }
 }

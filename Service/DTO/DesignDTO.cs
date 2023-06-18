@@ -2,7 +2,7 @@
 
 namespace Service.DTO
 {
-    public class DesignDTO:IDesign
+    public class DesignDTO: IDesign
     {
         public int Id { get; set; }
         public int UserId { get; set; }

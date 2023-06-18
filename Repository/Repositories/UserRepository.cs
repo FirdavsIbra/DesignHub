@@ -21,18 +21,19 @@ namespace Repository.Repositories
 
         public async Task<IUser[]> GetAllAsync()
         {
-            return await _dbContext.Users.Select(x => _mapper.Map<UserBusiness>(x)).ToArrayAsync();
+            return await _dbContext.Users.Where(x => x.Id != 1).Select(x => _mapper.Map<UserBusiness>(x)).ToArrayAsync();
         }
 
-        public async Task<IUser> GetById(int id)
+        public async Task<IUser> GetByIdAsync(int id)
         {
             var userEntity = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+
             return _mapper.Map<UserBusiness>(userEntity);
         }
 
-        public async Task<IUser> GetByUsername(string username)
+        public async Task<IUser> GetByUsernameAsync(string username)
         {
-            var userEntity = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var userEntity = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
             if (userEntity == null)
             {
                 return null; // No user found with the specified username

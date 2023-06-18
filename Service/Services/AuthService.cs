@@ -13,13 +13,11 @@ namespace Service.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
         private readonly JwtOptions _jwtOptions;
 
-        public AuthService(IConfiguration configuration, IUserRepository userRepository, IOptions<JwtOptions> jwtOptions)
+        public AuthService(IUserRepository userRepository, IOptions<JwtOptions> jwtOptions)
         {
-            _configuration = configuration;
             _userRepository = userRepository;
             _jwtOptions = jwtOptions.Value;
         }
@@ -76,9 +74,9 @@ namespace Service.Services
             }
         }
 
-        public async Task RegisterUser(string username, string password)
+        public async Task RegisterUserAsync(string username, string password)
         {
-            var user = await _userRepository.GetByUsername(username);
+            var user = await _userRepository.GetByUsernameAsync(username);
             if (user != null)
             {
                 throw new Exception("Registration failed. Please choose a different username.");
@@ -93,9 +91,9 @@ namespace Service.Services
             await _userRepository.Add(newUser);
         }
 
-        public async Task<bool> Login(string username, string password)
+        public async Task<bool> LoginAsync(string username, string password)
         {
-            var user = await _userRepository.GetByUsername(username);
+            var user = await _userRepository.GetByUsernameAsync(username);
             if (user == null)
             {
                 return false;
@@ -104,26 +102,12 @@ namespace Service.Services
             return VerifyPassword(password, user.Password);
         }
 
-        private string HashPassword(string password)
-        {
-            using var sha256 = SHA256.Create();
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-            byte[] hashBytes = sha256.ComputeHash(passwordBytes);
-            return Convert.ToBase64String(hashBytes);
-        }
-
-        private bool VerifyPassword(string password, string hashedPassword)
-        {
-            string inputHash = HashPassword(password);
-            return hashedPassword == inputHash;
-        }
-
-        public async Task<int> GetCurrentUserId(ClaimsPrincipal user)
+        public async Task<int> GetCurrentUserIdAsync(ClaimsPrincipal user)
         {
             Claim userIdClaim = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
             {
-                var existingUser = await _userRepository.GetById(userId);
+                var existingUser = await _userRepository.GetByIdAsync(userId);
                 return existingUser != null ? userId : 0;
             }
 
@@ -140,6 +124,20 @@ namespace Service.Services
             }
 
             return 0;
+        }
+
+        private bool VerifyPassword(string password, string hashedPassword)
+        {
+            string inputHash = HashPassword(password);
+            return hashedPassword == inputHash;
+        }
+
+        private string HashPassword(string password)
+        {
+            using var sha256 = SHA256.Create();
+            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+            byte[] hashBytes = sha256.ComputeHash(passwordBytes);
+            return Convert.ToBase64String(hashBytes);
         }
     }
 }

@@ -6,10 +6,10 @@ namespace Domain.Repositories
     {
         public Task AddAsync(ISketch sketch);
 
-        public Task<ISketch> GetByUserId(int userId);
+        public Task<ISketch> GetByUserIdAsync(int userId);
 
         public Task<ISketch[]> GetAllAsync();
 
-        public Task Update(ISketch sketch);
+        public Task UpdateAsync(ISketch sketch);
     }
 }

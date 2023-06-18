@@ -22,6 +22,7 @@ namespace Repository.Repositories
         public async Task<ICompany> GetByUserIdAsync(int userId)
         {
             var companyEntity = await _dbContext.Companies.FirstOrDefaultAsync(c => c.UserId == userId);
+
             return _mapper.Map<CompanyBusiness>(companyEntity);
         }
 
@@ -30,21 +31,24 @@ namespace Repository.Repositories
             return await _dbContext.Companies.Select(x => _mapper.Map<CompanyBusiness>(x)).ToArrayAsync();
         }
 
-        public async Task Add(ICompany company)
+        public async Task AddAsync(ICompany company)
         {
             var companyEntity = _mapper.Map<Company>(company);
-            _dbContext.Companies.Add(companyEntity);
+
+            await _dbContext.Companies.AddAsync(companyEntity);
+            
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task Update(ICompany company)
+        public async Task UpdateAsync(ICompany company)
         {
             var existingCompany = await _dbContext.Companies.FirstOrDefaultAsync(c => c.Id == company.Id);
             if (existingCompany == null)
                 throw new InvalidOperationException("Company not found");
 
-            var a =_mapper.Map(company, existingCompany);
-            _dbContext.Companies.Update(a);
+            var mappedCompany =_mapper.Map(company, existingCompany);
+
+            _dbContext.Companies.Update(mappedCompany);
             await _dbContext.SaveChangesAsync();
         }
     }

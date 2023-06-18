@@ -24,7 +24,7 @@ namespace API.Controllers
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetByUserIdAsync(int userId)
         {
-            return Ok(await _sketchService.GetByUserId(userId));
+            return Ok(await _sketchService.GetByUserIdAsync(userId));
         }
     }
 }

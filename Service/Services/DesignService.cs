@@ -7,7 +7,6 @@ namespace Service.Services
     public class DesignService : IDesignService
     {
         private readonly IDesignRepository _designRepository;
-
         public DesignService(IDesignRepository designRepository)
         {
             _designRepository = designRepository;
@@ -20,17 +19,17 @@ namespace Service.Services
             if(existingDesign != null) 
             {
                 design.Id = existingDesign.Id;
-                await _designRepository.Update(design);
+                await _designRepository.UpdateAsync(design);
             }
             else
             {
-                await _designRepository.Add(design);
+                await _designRepository.AddAsync(design);
             }
         }
 
         public async Task<IDesign> GetByUserIdAsync(int userId)
         {
-            return await _designRepository.GetByUserId(userId);
+            return await _designRepository.GetByUserIdAsync(userId);
         }
     }
 }
